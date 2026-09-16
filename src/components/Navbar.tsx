@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { NAV_LINKS } from '../data'
 import Magnetic from './Magnetic'
+import { scrollToSection, scrollToTop } from '../lib/lenis'
 
 export default function Navbar() {
   const [scrolled, setScrolled] = useState(false)
@@ -46,9 +47,7 @@ export default function Navbar() {
       navigate('/', { state: { scrollTo: target } })
       return
     }
-    document
-      .getElementById(target)
-      ?.scrollIntoView({ behavior: 'smooth' })
+    scrollToSection(target)
   }
 
   return (
@@ -62,7 +61,7 @@ export default function Navbar() {
           type="button"
           onClick={() => {
             if (location.pathname !== '/') navigate('/')
-            else window.scrollTo({ top: 0, behavior: 'smooth' })
+            else scrollToTop()
           }}
           className="group relative ml-1 mr-1 h-9 w-9 rounded-full transition-transform duration-300 hover:scale-110"
           aria-label="Rachit Sharma — home"

@@ -2,7 +2,7 @@ import { useRef } from 'react'
 import { Canvas, useFrame } from '@react-three/fiber'
 import type { MutableRefObject } from 'react'
 import type { WorkProject } from './projectsData'
-import type { PanelOpenEvent } from './ProjectPanel'
+import type { PanelScreenRect } from './ProjectPanel'
 import GridFloor from './GridFloor'
 import ProjectPanel from './ProjectPanel'
 
@@ -48,17 +48,15 @@ function CameraRig({ progressRef, blurEl }: CameraRigProps) {
 interface WorksSceneProps {
   progressRef: MutableRefObject<number>
   blurEl?: MutableRefObject<HTMLDivElement | null>
-  onOpen?: (project: WorkProject, point: PanelOpenEvent) => void
   projects?: WorkProject[]
-  focusIndex?: number
+  screenRects?: PanelScreenRect[]
 }
 
 export default function WorksScene({
   progressRef,
   blurEl,
-  onOpen,
   projects,
-  focusIndex = 0,
+  screenRects,
 }: WorksSceneProps) {
   const list = projects ?? []
   return (
@@ -81,8 +79,7 @@ export default function WorksScene({
           project={project}
           z={-i * PANEL_SPACING}
           focusRange={PANEL_SPACING * 0.75}
-          active={i === focusIndex}
-          onOpen={onOpen}
+          screenRect={screenRects?.[i] ?? { x: 0, y: 0, w: 0, h: 0, visible: false }}
         />
       ))}
 

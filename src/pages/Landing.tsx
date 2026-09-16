@@ -10,6 +10,7 @@ import Stats from '../components/Stats'
 import EnquiryForm from '../components/EnquiryForm'
 import Contact from '../components/Contact'
 import { SOCIALS } from '../data'
+import { scrollToSection, scrollToTop } from '../lib/lenis'
 
 interface LandingProps {
   ready?: boolean
@@ -22,13 +23,11 @@ export default function Landing({ ready = true }: LandingProps) {
     const targetId = (location.state as { scrollTo?: string } | null)?.scrollTo
     if (targetId && location.pathname === '/') {
       const timeout = window.setTimeout(() => {
-        document
-          .getElementById(targetId)
-          ?.scrollIntoView({ behavior: 'smooth' })
+        scrollToSection(targetId)
       }, 100)
       return () => window.clearTimeout(timeout)
     }
-    window.scrollTo(0, 0)
+    scrollToTop()
   }, [location])
 
   return (

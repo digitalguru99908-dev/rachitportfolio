@@ -1,6 +1,6 @@
 import { useMemo, useRef } from 'react'
 import * as THREE from 'three'
-import { useFrame, type ThreeEvent } from '@react-three/fiber'
+import { useFrame } from '@react-three/fiber'
 import { Html } from '@react-three/drei'
 import type { WorkProject } from './projectsData'
 
@@ -9,17 +9,25 @@ export interface PanelOpenEvent {
   y: number
 }
 
+export interface PanelScreenRect {
+  x: number
+  y: number
+  w: number
+  h: number
+  visible: boolean
+}
+
 interface ProjectPanelProps {
   project: WorkProject
   z: number
   focusRange?: number
-  active?: boolean
-  onOpen?: (project: WorkProject, point: PanelOpenEvent) => void
+  screenRect: PanelScreenRect
 }
 
 const PANEL_W = 5
 const PANEL_H = 3.1
 const PANEL_D = 0.12
+const PANEL_Y = 0.15
 
 function useGradientTexture(from: string, to: string) {
   return useMemo(() => {
@@ -44,8 +52,7 @@ export default function ProjectPanel({
   project,
   z,
   focusRange = 6,
-  active = true,
-  onOpen,
+  screenRect,
 }: ProjectPanelProps) {
   const group = useRef<THREE.Group>(null)
   const mat = useRef<THREE.MeshBasicMaterial>(null)
@@ -55,30 +62,55 @@ export default function ProjectPanel({
     const dist = Math.abs(camera.position.z - z)
     const focus = THREE.MathUtils.clamp(1 - dist / focusRange, 0, 1)
     const ease = focus * focus * (3 - 2 * focus)
+    const scale = 0.86 + ease * 0.24
     if (group.current) {
-      group.current.scale.setScalar(0.86 + ease * 0.24)
+      group.current.scale.setScalar(scale)
       group.current.position.z = z
     }
     if (mat.current) {
       mat.current.opacity = 0.35 + ease * 0.65
     }
+
+    const hw = (PANEL_W * scale) / 2
+    const hh = (PANEL_H * scale) / 2
+    const frontZ = z + PANEL_D / 2
+    const pts: [number, number, number][] = [
+      [-hw, PANEL_Y - hh, frontZ],
+      [hw, PANEL_Y - hh, frontZ],
+      [hw, PANEL_Y + hh, frontZ],
+      [-hw, PANEL_Y + hh, frontZ],
+    ]
+    const v = new THREE.Vector3()
+    let inFront = camera.position.z > frontZ
+    const xs: number[] = []
+    const ys: number[] = []
+    for (const [px, py, pz] of pts) {
+      v.set(px, py, pz).project(camera)
+      if (v.z > 1 || v.z < -1) inFront = false
+      xs.push(v.x)
+      ys.push(v.y)
+    }
+
+    if (inFront) {
+      const iw = window.innerWidth
+      const ih = window.innerHeight
+      const left = ((Math.min(...xs) + 1) / 2) * iw
+      const right = ((Math.max(...xs) + 1) / 2) * iw
+      const top = ((1 - Math.max(...ys)) / 2) * ih
+      const bottom = ((1 - Math.min(...ys)) / 2) * ih
+      screenRect.x = left
+      screenRect.y = top
+      screenRect.w = right - left
+      screenRect.h = bottom - top
+      screenRect.visible = true
+    } else {
+      screenRect.visible = false
+    }
   })
 
-  const onPanelClick = (e: ThreeEvent<MouseEvent>) => {
-    e.stopPropagation()
-    onOpen?.(project, {
-      x: e.nativeEvent.clientX,
-      y: e.nativeEvent.clientY,
-    })
-  }
-
   return (
-    <group ref={group} position={[0, 0.15, z]}>
-      <mesh
-        onClick={active ? onPanelClick : undefined}
-        raycast={active ? undefined : () => null}
-        position={[0, 0, 0]}
-      >
+    <group ref={group} position={[0, PANEL_Y, z]}>
+      <mesh position={[0, 0, 0]}>
         <boxGeometry args={[PANEL_W, PANEL_H, PANEL_D]} />
         <meshBasicMaterial
           ref={mat}

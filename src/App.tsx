@@ -8,6 +8,7 @@ import LoadingScreen from './components/LoadingScreen'
 import Grain from './components/Grain'
 import CursorGlow from './components/CursorGlow'
 import Navbar from './components/Navbar'
+import { setLenis } from './lib/lenis'
 
 const EASE = [0.16, 1, 0.3, 1] as const
 
@@ -40,7 +41,11 @@ function AppContent() {
       autoRaf: true,
       lerp: 0.09,
     })
-    return () => lenis.destroy()
+    setLenis(lenis)
+    return () => {
+      setLenis(null)
+      lenis.destroy()
+    }
   }, [])
 
   const onComplete = useCallback(() => setIsLoading(false), [])

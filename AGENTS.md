@@ -39,8 +39,10 @@
 - Resume page complete (Education, Skills, Projects).
 - Framer Motion page transitions, RevealHeading, TiltCard, Magnetic, Marquee helpers bane hain.
 - **NEW (`v7`) — About/Capabilities/Vision/EnquiryForm sections** — `src/components/About.tsx`, `Capabilities.tsx`, `Vision.tsx`, `EnquiryForm.tsx` add hue. EnquiryForm me EmailJS placeholder credentials (`YOUR_SERVICE_ID` etc.) daalne baaki hain.
-- **NEW — 3D Scroll-to-Fly-Through Works:** `SelectedWork.tsx` ab React Three Fiber 3D section hai — scroll par camera panels ke beech fly karta hai (sticky `h-[400vh]` + window scroll + Lenis). Components `src/components/works/` me (WorksScene, ProjectPanel, GridFloor, WorksOverlay, projectsData). Panels par click → `ProjectDetailTransition`.
-- **NEW — Click-to-Open transition (`v5`):** `ProjectTileTransition.tsx` ko 3 files me refactor kiya — `ProjectDetailTransition.tsx` (tile scatter → circle converge → dissolve → card), `ProjectDetailCard.tsx` (card, View Details = GitHub link), `useProjectTransition.ts` (open/close hook, `seq` counter). Tiles panel ke click-point se originate hoti hain, per-project accent/screenshot, coming-soon desaturated + shake.
+- **NEW — DOM Click Overlay (`v8`):** panels ab mesh raycast nahi, `PanelClickLayer` ke invisible DOM buttons se open hote hain (useFrame screen-projection + rAF sync). Sab panels any scroll position par clickable.
+- **NEW — 3D Scroll-to-Fly-Through Works:** `SelectedWork.tsx` ab React Three Fiber 3D section hai — scroll par camera panels ke beech fly karta hai (sticky `h-[400vh]` + window scroll + Lenis). Components `src/components/works/` me (WorksScene, ProjectPanel, GridFloor, WorksOverlay, PanelClickLayer, projectsData).
+- **Lenis nav scroll (`v8`):** nav/hero/landing `src/lib/lenis.ts` ke `scrollToSection()`/`scrollToTop()` use karte hain — Lenis conflict se dead-scroll fix hua.
+- **Panel click par `ProjectDetailTransition` kholta hai** (`v5`, refactor) — tiles scatter → circle converge → dissolve → card; View Details = GitHub link (v6); coming-soon desaturated + shake.
 - **Hero black-background fix:** `BackgroundVideo` ab fallback gradient dikhata hai jab video load/play nahi hoti (VS Code embedded browser case). Video sirf tab dikhti hai jab actually play ho rahi ho.
 - **Lenis smooth scroll** App-level wired (`src/App.tsx`, autoRaf lerp 0.09).
 - `data.ts` me highlight:
@@ -65,6 +67,19 @@
 ---
 
 ## 📝 Changelog (History of Work)
+
+### [v8 — Round 2 Fixes: DOM click, Lenis nav, About redesign] — 16 Sep 2026
+- **Bug fix — project panel click ab har scroll position par reliably kholta hai:** 3D raycast hit-testing (unreliable, sirf focused panel work karta tha) hata ke **DOM click overlay** approach use kiya:
+  - `src/components/works/ProjectPanel.tsx` — mesh se `onClick`/`raycast` gating hata diya; `useFrame` me har panel ka front-face **screen coords me project** hota hai (`Vector3.project(camera)`, 4 corners → viewport px rect) aur `screenRect` object me likhta hai.
+  - `src/components/works/PanelClickLayer.tsx` (Naya) — sticky container ke upar invisible DOM `<button>`s (har panel ke liye ek), rAF loop se `screenRect` ke hisaab se position/size sync. DOM button click mesh raycast se kahin zyada reliable. Click → clientX/Y origin → `ProjectDetailTransition`.
+  - `WorksScene`/`SelectedWork` — `focusIndex` state aur `active` prop puri tarah remove (ab sab panels clickable hain). `screenRects` = `useMemo` array (stable objects, React-render safe).
+  - WorksOverlay + top "Selected Work" bar `pointer-events-none` already the; top bar container z-20→z-30.
+- **Bug fix — nav/hero/"Say hi" links ab actually scroll karte hain (Lenis fight fix):** `scrollIntoView`/`window.scrollTo` Lenis se clash karta tha → `src/lib/lenis.ts` (Naya) — Lenis singleton `setLenis()`/`scrollToSection(id)`/`scrollToTop()` helpers. `App.tsx` me Lenis register; `Navbar`, `Hero`, `Landing` sab `lenis.scrollTo()` use karte hain.
+- **Footer/social links:** pehle se real `<a target="_blank">` hain (`data.ts` SOCIALS). LinkedIn/Instagram abhi placeholder URLs (real handle share karo to replace).
+- **About section redesign (`v8`):** photo slot (240px circular frame, permanent blue accent gradient ring, initials placeholder + `TODO: replace with Rachit's own photo` comment) + "My Story" card left column; bio paragraphs ab 3 bordered cards (`bg-surface border-stroke rounded-2xl`) + chips/buttons hover lift (`-translate-y-0.5` + border accent). "My Journey" timeline: har item scroll reveal, dot accent-gradient + glow spring-in.
+- **Capabilities hover:** cards ab `hover:-translate-y-1` lift + border text-primary/50.
+- **Enquiry Form:** already wired (`Landing.tsx` me, Stats ke baad, Contact se pehle) — sirf EmailJS credentials placeholders baaki (`src/components/EnquiryForm.tsx:19-21`).
+- `npm run lint` + `npm run build` pass (sirf known R3F useFrame mutation warnings + chunk-size warning).
 
 ### [v7 — About / Capabilities / Vision / Enquiry Form Sections] — 16 Sep 2026
 - **4 naye sections** landing page par (order: Hero → SelectedWork → Journal → **About → Capabilities → Vision → Stats → Enquiry Form → Contact**):

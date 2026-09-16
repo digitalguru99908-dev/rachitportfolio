@@ -56,7 +56,7 @@ export default function Capabilities() {
                   whileInView={{ opacity: 1, y: 0 }}
                   viewport={{ once: true, margin: '-60px' }}
                   transition={{ duration: 0.7, ease: EASE, delay: i * 0.06 }}
-                  className="group flex flex-col items-center gap-3 rounded-2xl border border-stroke bg-surface/30 p-5 text-center transition-all duration-500 hover:border-text-primary/40 hover:bg-surface/60"
+                  className="group flex flex-col items-center gap-3 rounded-2xl border border-stroke bg-surface/30 p-5 text-center transition-all duration-500 hover:-translate-y-1 hover:border-text-primary/50 hover:bg-surface/60"
                 >
                   <item.icon
                     size={24}
@@ -88,7 +88,7 @@ export default function Capabilities() {
                   whileInView={{ opacity: 1, y: 0 }}
                   viewport={{ once: true, margin: '-60px' }}
                   transition={{ duration: 0.7, ease: EASE, delay: i * 0.06 }}
-                  className="group flex flex-col items-center gap-3 rounded-2xl border border-stroke bg-surface/30 p-5 text-center transition-all duration-500 hover:border-text-primary/40 hover:bg-surface/60"
+                  className="group flex flex-col items-center gap-3 rounded-2xl border border-stroke bg-surface/30 p-5 text-center transition-all duration-500 hover:-translate-y-1 hover:border-text-primary/50 hover:bg-surface/60"
                 >
                   <item.icon
                     size={24}

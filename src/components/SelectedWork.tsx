@@ -1,12 +1,12 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef } from 'react'
 import type { Project } from '../data'
 import { PROJECTS, SOCIALS } from '../data'
 import WorksScene from './works/WorksScene'
 import WorksOverlay from './works/WorksOverlay'
+import PanelClickLayer from './works/PanelClickLayer'
 import ProjectDetailTransition from './works/ProjectDetailTransition'
 import { useProjectTransition } from './works/useProjectTransition'
-import { PANEL_COUNT } from './works/WorksScene'
-import type { PanelOpenEvent } from './works/ProjectPanel'
+import type { PanelOpenEvent, PanelScreenRect } from './works/ProjectPanel'
 import type { WorkProject } from './works/projectsData'
 import { WORK_PROJECTS } from './works/projectsData'
 
@@ -20,7 +20,10 @@ export default function SelectedWork() {
   const sectionRef = useRef<HTMLDivElement>(null)
   const blurRef = useRef<HTMLDivElement>(null)
   const progressRef = useRef(0)
-  const [focusIndex, setFocusIndex] = useState(0)
+  const screenRects = useMemo<PanelScreenRect[]>(
+    () => WORK_PROJECTS.map(() => ({ x: 0, y: 0, w: 0, h: 0, visible: false })),
+    [],
+  )
   const { request, open, close } = useProjectTransition()
 
   useEffect(() => {
@@ -34,11 +37,6 @@ export default function SelectedWork() {
         Math.min(1, -el.getBoundingClientRect().top / total),
       )
       progressRef.current = p
-      const idx = Math.min(
-        PANEL_COUNT - 1,
-        Math.round(p * (PANEL_COUNT - 1)),
-      )
-      setFocusIndex(idx)
     }
     onScroll()
     window.addEventListener('scroll', onScroll, { passive: true })
@@ -60,7 +58,7 @@ export default function SelectedWork() {
   return (
     <section id="work" className="relative h-[400vh] bg-bg" ref={sectionRef}>
       <div className="sticky top-0 h-screen overflow-hidden bg-bg">
-        <div className="pointer-events-none absolute inset-x-0 top-6 z-20 flex items-start justify-between px-6 sm:px-10">
+        <div className="pointer-events-none absolute inset-x-0 top-6 z-30 flex items-start justify-between px-6 sm:px-10">
           <div className="flex items-center gap-3">
             <span className="text-[10px] uppercase tracking-[0.3em] text-white/40">
               Selected Work
@@ -84,13 +82,18 @@ export default function SelectedWork() {
           <WorksScene
             progressRef={progressRef}
             blurEl={blurRef}
-            onOpen={onOpen}
             projects={WORK_PROJECTS}
-            focusIndex={focusIndex}
+            screenRects={screenRects}
           />
         </div>
 
         <WorksOverlay progressRef={progressRef} projects={WORK_PROJECTS} />
+
+        <PanelClickLayer
+          projects={WORK_PROJECTS}
+          rects={screenRects}
+          onOpen={onOpen}
+        />
       </div>
 
       {request && (

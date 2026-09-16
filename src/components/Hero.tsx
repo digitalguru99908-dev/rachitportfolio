@@ -3,6 +3,7 @@ import gsap from 'gsap'
 import BackgroundVideo from './BackgroundVideo'
 import Magnetic from './Magnetic'
 import { HERO_ROLES, VIDEO_SRC } from '../data'
+import { scrollToSection } from '../lib/lenis'
 
 interface HeroProps {
   ready?: boolean
@@ -45,10 +46,8 @@ export default function Hero({ ready = true }: HeroProps) {
     return () => window.clearInterval(interval)
   }, [])
 
-  const scrollToWork = () =>
-    document.getElementById('work')?.scrollIntoView({ behavior: 'smooth' })
-  const scrollToContact = () =>
-    document.getElementById('contact')?.scrollIntoView({ behavior: 'smooth' })
+  const scrollToWork = () => scrollToSection('work')
+  const scrollToContact = () => scrollToSection('contact')
 
   return (
     <section
