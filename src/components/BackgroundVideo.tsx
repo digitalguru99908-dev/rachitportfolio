@@ -1,18 +1,21 @@
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import type HlsType from 'hls.js'
 
 interface BackgroundVideoProps {
   src: string
   flip?: boolean
   overlay?: string
+  fallback?: string
 }
 
 export default function BackgroundVideo({
   src,
   flip = false,
   overlay,
+  fallback,
 }: BackgroundVideoProps) {
   const videoRef = useRef<HTMLVideoElement>(null)
+  const [playing, setPlaying] = useState(false)
 
   useEffect(() => {
     const video = videoRef.current
@@ -31,7 +34,7 @@ export default function BackgroundVideo({
       const { default: Hls } = await import('hls.js')
 
       if (Hls.isSupported()) {
-        hls = new Hls({ enableWorker: true })
+        hls = new Hls({ enableWorker: false })
         hls.loadSource(src)
         hls.attachMedia(video)
         hls.on(Hls.Events.MANIFEST_PARSED, () => {
@@ -74,14 +77,28 @@ export default function BackgroundVideo({
 
   return (
     <div className="absolute inset-0 overflow-hidden" aria-hidden="true">
+      {fallback ? (
+        <div
+          className="absolute inset-0"
+          style={{ background: fallback }}
+        />
+      ) : null}
       <video
         ref={videoRef}
         autoPlay
         muted
         loop
         playsInline
-        className="absolute left-1/2 top-1/2 h-full w-full min-w-full min-h-full object-cover -translate-x-1/2 -translate-y-1/2"
-        style={flip ? { transform: 'scaleY(-1)' } : undefined}
+        onPlaying={() => setPlaying(true)}
+        onPlay={() => setPlaying(true)}
+        className={`absolute h-full w-full min-w-full min-h-full object-cover transition-opacity duration-700 ${
+          playing ? 'opacity-100' : 'opacity-0'
+        }`}
+        style={{
+          left: '50%',
+          top: '50%',
+          transform: `translate(-50%, -50%) ${flip ? 'scaleY(-1)' : ''}`,
+        }}
       />
       {overlay ? <div className={`absolute inset-0 ${overlay}`} /> : null}
     </div>

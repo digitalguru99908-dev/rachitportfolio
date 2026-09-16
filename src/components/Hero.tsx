@@ -59,6 +59,7 @@ export default function Hero({ ready = true }: HeroProps) {
       <BackgroundVideo
         src={VIDEO_SRC}
         overlay="bg-black/20"
+        fallback="radial-gradient(1200px 800px at 20% 30%, #1b2c3d 0%, #0e1620 50%, #06080b 100%)"
       />
 
       <div className="pointer-events-none absolute inset-x-0 bottom-0 h-48 bg-gradient-to-t from-bg to-transparent" />

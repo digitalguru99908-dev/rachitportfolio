@@ -4,6 +4,8 @@
 @theme {
   --font-body: "Inter", "Inter Fallback", sans-serif;
   --font-display: "Instrument Serif", serif;
+  --font-archivo: "Archivo", "Inter", sans-serif;
+  --font-grotesk: "Space Grotesk", "Inter", sans-serif;
 
   --color-bg: hsl(var(--bg));
   --color-surface: hsl(var(--surface));

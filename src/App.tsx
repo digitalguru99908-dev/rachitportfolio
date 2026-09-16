@@ -1,6 +1,7 @@
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useEffect } from 'react'
 import { BrowserRouter, useLocation, Routes, Route } from 'react-router-dom'
 import { AnimatePresence, motion } from 'framer-motion'
+import Lenis from 'lenis'
 import Landing from './pages/Landing'
 import Resume from './pages/Resume'
 import LoadingScreen from './components/LoadingScreen'
@@ -33,6 +34,14 @@ function AnimatedRoutes({ ready }: { ready: boolean }) {
 
 function AppContent() {
   const [isLoading, setIsLoading] = useState(true)
+
+  useEffect(() => {
+    const lenis = new Lenis({
+      autoRaf: true,
+      lerp: 0.09,
+    })
+    return () => lenis.destroy()
+  }, [])
 
   const onComplete = useCallback(() => setIsLoading(false), [])
 

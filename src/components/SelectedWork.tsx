@@ -1,124 +1,96 @@
-import { useState } from 'react'
+import { useEffect, useRef } from 'react'
 import type { Project } from '../data'
 import { PROJECTS, SOCIALS } from '../data'
-import SectionHeader from './SectionHeader'
-import TiltCard from './TiltCard'
+import WorksScene from './works/WorksScene'
+import WorksOverlay from './works/WorksOverlay'
+import ProjectDetailTransition from './works/ProjectDetailTransition'
+import { useProjectTransition } from './works/useProjectTransition'
+import type { PanelOpenEvent } from './works/ProjectPanel'
+import type { WorkProject } from './works/projectsData'
+import { WORK_PROJECTS } from './works/projectsData'
 
-const PLACEHOLDER_GRADIENTS = [
-  'linear-gradient(135deg, #16222a 0%, #3a6073 100%)',
-  'linear-gradient(135deg, #1f1c2c 0%, #928dab 100%)',
-]
-
-export default function SelectedWork() {
-  return (
-    <section id="work" className="bg-bg py-12 md:py-16">
-      <div className="mx-auto max-w-[1200px] px-6 md:px-10 lg:px-16">
-        <SectionHeader
-          eyebrow="Selected Work"
-          segments={[{ text: 'Featured ' }, { text: 'projects', italic: true }]}
-          subtext="A few things I've built and shipped."
-          action={
-            <a
-              href={SOCIALS.github}
-              target="_blank"
-              rel="noreferrer"
-              className="hidden rounded-full border border-stroke px-6 py-3 text-sm text-muted transition-all duration-500 hover:scale-105 hover:border-transparent hover:text-text-primary md:inline-flex border-gradient-ring"
-            >
-              View all work ↗
-            </a>
-          }
-        />
-
-        <div className="grid grid-cols-1 gap-5 md:grid-cols-12 md:gap-6">
-          {PROJECTS.map((project: Project, index) => (
-            <TiltCard
-              key={project.title}
-              className={`group relative min-h-[320px] overflow-hidden rounded-3xl border border-stroke bg-surface ${project.span} ${project.aspect}`}
-            >
-              <ProjectMedia project={project} index={index} />
-
-              <div className="pointer-events-none absolute inset-0 bg-bg/70 opacity-0 backdrop-blur-lg transition-opacity duration-500 group-hover:opacity-100" />
-
-              <div className="absolute left-5 top-5 flex items-center gap-2">
-                <span
-                  className={`rounded-full px-3 py-1.5 text-[11px] uppercase tracking-[0.2em] ${
-                    project.comingSoon
-                      ? 'border border-stroke text-muted'
-                      : 'bg-text-primary text-bg'
-                  }`}
-                >
-                  {project.comingSoon ? 'Coming soon' : project.tag}
-                </span>
-              </div>
-
-              {project.href ? (
-                <a
-                  href={project.href}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="absolute inset-0 z-10 flex items-end p-6"
-                  aria-label={`View ${project.title}`}
-                >
-                  <span className="pointer-events-none translate-y-3 rounded-full border border-transparent bg-white px-5 py-2.5 text-sm text-black opacity-0 transition-all duration-500 group-hover:translate-y-0 group-hover:opacity-100 border-gradient-ring bg-white">
-                    View —{' '}
-                    <span className="font-display italic">
-                      {project.title}
-                    </span>
-                  </span>
-                </a>
-              ) : (
-                <div className="absolute inset-0 z-10 flex items-end p-6">
-                  <span className="pointer-events-none translate-y-3 rounded-full border border-stroke bg-surface px-5 py-2.5 text-sm text-text-primary opacity-0 transition-all duration-500 group-hover:translate-y-0 group-hover:opacity-100">
-                    Coming <span className="font-display italic">soon</span>
-                  </span>
-                </div>
-              )}
-            </TiltCard>
-          ))}
-        </div>
-      </div>
-    </section>
-  )
+function toProject(work: WorkProject): Project | undefined {
+  return PROJECTS.find((p) => p.title === work.title)
 }
 
-function ProjectMedia({
-  project,
-  index,
-}: {
-  project: Project
-  index: number
-}) {
-  const [failed, setFailed] = useState(false)
-  const fallback =
-    PLACEHOLDER_GRADIENTS[
-      index % PLACEHOLDER_GRADIENTS.length
-    ]
+export default function SelectedWork() {
+  const sectionRef = useRef<HTMLDivElement>(null)
+  const blurRef = useRef<HTMLDivElement>(null)
+  const progressRef = useRef(0)
+  const { request, open, close } = useProjectTransition()
 
-  const showImage = Boolean(project.image) && !failed
+  useEffect(() => {
+    const onScroll = () => {
+      const el = sectionRef.current
+      if (!el) return
+      const total = el.offsetHeight - window.innerHeight
+      if (total <= 0) return
+      const p = Math.max(
+        0,
+        Math.min(1, -el.getBoundingClientRect().top / total),
+      )
+      progressRef.current = p
+    }
+    onScroll()
+    window.addEventListener('scroll', onScroll, { passive: true })
+    window.addEventListener('resize', onScroll)
+    return () => {
+      window.removeEventListener('scroll', onScroll)
+      window.removeEventListener('resize', onScroll)
+    }
+  }, [])
+
+  const onOpen = (work: WorkProject, point: PanelOpenEvent) => {
+    const project = toProject(work)
+    if (!project) return
+    const size = Math.min(window.innerWidth, window.innerHeight) * (project.comingSoon ? 0.09 : 0.28)
+    const rect = new DOMRect(point.x - size / 2, point.y - size / 2, size, size)
+    open(project, rect)
+  }
 
   return (
-    <>
-      <div
-        className="absolute inset-0"
-        style={{
-          background:
-            fallback ??
-            'linear-gradient(135deg, #101014 0%, #1b222b 100%)',
-        }}
-      />
-      {showImage ? (
-        <img
-          src={project.image}
-          alt={project.title}
-          onError={() => setFailed(true)}
-          className="absolute inset-0 h-full w-full object-cover opacity-40 transition-transform duration-700 ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:scale-105"
-          loading="lazy"
+    <section id="work" className="relative h-[400vh] bg-bg" ref={sectionRef}>
+      <div className="sticky top-0 h-screen overflow-hidden bg-bg">
+        <div className="pointer-events-none absolute inset-x-0 top-6 z-20 flex items-start justify-between px-6 sm:px-10">
+          <div className="flex items-center gap-3">
+            <span className="text-[10px] uppercase tracking-[0.3em] text-white/40">
+              Selected Work
+            </span>
+            <span className="hidden h-px w-8 bg-white/20 sm:block" />
+            <span className="hidden text-[10px] uppercase tracking-[0.3em] text-white/30 sm:block">
+              04 Projects
+            </span>
+          </div>
+          <a
+            href={SOCIALS.github}
+            target="_blank"
+            rel="noreferrer"
+            className="pointer-events-auto rounded-full border border-white/15 px-5 py-2 text-[11px] uppercase tracking-[0.2em] text-white/70 backdrop-blur-sm transition-colors duration-300 hover:border-white/40 hover:text-white"
+          >
+            View all work ↗
+          </a>
+        </div>
+
+        <div ref={blurRef} className="absolute inset-0">
+          <WorksScene
+            progressRef={progressRef}
+            blurEl={blurRef}
+            onOpen={onOpen}
+            projects={WORK_PROJECTS}
+          />
+        </div>
+
+        <WorksOverlay progressRef={progressRef} projects={WORK_PROJECTS} />
+      </div>
+
+      {request && (
+        <ProjectDetailTransition
+          key={request.seq}
+          project={request.project}
+          originRect={request.originRect}
+          onClose={close}
         />
-      ) : null}
-      <div
-        className="halftone absolute inset-0 opacity-20 mix-blend-multiply"
-        aria-hidden="true"
-      />
-    </>
+      )}
+    </section>
   )
 }

@@ -44,6 +44,10 @@ export interface Project {
   aspect: string
   span: string
   comingSoon?: boolean
+  accent?: string
+  tagline?: string
+  description?: string
+  tech?: string[]
 }
 
 export const PROJECTS: Project[] = [
@@ -55,6 +59,11 @@ export const PROJECTS: Project[] = [
       'https://socialify.git.ci/digitalguru99908-dev/Fitness-website/png?theme=Dark&font=Rokkitt&pattern=Circuit%20Board',
     aspect: 'aspect-[4/3] md:aspect-auto',
     span: 'md:col-span-7',
+    accent: '#4E85BF',
+    tagline: 'A fitness-focused site built to practice clean UI and real brand messaging.',
+    description:
+      'A fitness-focused website built to practice clean UI, responsive layout, and brand messaging. Designed to feel energetic, trustworthy, and conversion-friendly across every screen size.',
+    tech: ['UI Design', 'Responsive', 'Branding'],
   },
   {
     title: 'Neon Car Racing',
@@ -64,6 +73,11 @@ export const PROJECTS: Project[] = [
       'https://socialify.git.ci/digitalguru99908-dev/neon-car-racing-game-/png?theme=Dark&font=Rokkitt&pattern=Floating%20Cogs',
     aspect: 'aspect-[4/3] md:aspect-auto',
     span: 'md:col-span-5',
+    accent: '#D946EF',
+    tagline: 'A neon-soaked browser racer — built for fun, kept for the speed.',
+    description:
+      'A browser racing game built for fun and practice with JavaScript game loops. Fast, flashy, and built to feel arcade-smooth under the hood.',
+    tech: ['JavaScript', 'Game Loops', 'Canvas'],
   },
   {
     title: 'Upcoming Game',
@@ -71,6 +85,11 @@ export const PROJECTS: Project[] = [
     aspect: 'aspect-[4/3] md:aspect-auto',
     span: 'md:col-span-5',
     comingSoon: true,
+    accent: '#8A94A6',
+    tagline: 'Currently in the workshop — shipping soon.',
+    description:
+      'A new project is in the works. Details coming soon.',
+    tech: ['Coming Soon'],
   },
   {
     title: 'Video Edit Reel',
@@ -78,6 +97,11 @@ export const PROJECTS: Project[] = [
     aspect: 'aspect-[4/3] md:aspect-auto',
     span: 'md:col-span-7',
     comingSoon: true,
+    accent: '#8A94A6',
+    tagline: 'A reel in progress — cut, graded, nearly ready.',
+    description:
+      'Creative editing work currently being crafted. More details soon.',
+    tech: ['Editing', 'Coming Soon'],
   },
 ]
 
