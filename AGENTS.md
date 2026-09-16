@@ -45,7 +45,7 @@
 - **Panel click par `ProjectDetailTransition` kholta hai** (`v5`, refactor) — tiles scatter → circle converge → dissolve → card; View Details = GitHub link (v6); coming-soon desaturated + shake.
 - **Hero black-background fix:** `BackgroundVideo` ab fallback gradient dikhata hai jab video load/play nahi hoti (VS Code embedded browser case). Video sirf tab dikhti hai jab actually play ho rahi ho.
 - **Lenis smooth scroll** App-level wired (`src/App.tsx`, autoRaf lerp 0.09).
-- **Backend split (`v12`):** API ab Render par (`server/` Express + Resend), frontend Vercel static. `VITE_API_URL` = Render URL (Vercel env).
+- **Backend LIVE on Render (`v13`):** API `https://rachitportfolio-api.onrender.com` (Express + Resend), frontend Vercel static only. `VITE_API_URL` (Vercel env + `.env` local) = Render URL. `RENDER_API_KEY` saved in `.env` (gitignored).
 - `data.ts` me highlight:
   - LinkedIn & Instagram links TODO hai (`src/data.ts`)
   - `VIDEO_SRC` — real HLS/video link chahiye (abhi Mux test stream hai)
@@ -68,6 +68,27 @@
 ---
 
 ## 📝 Changelog (History of Work)
+
+### [v13 — Render backend LIVE via REST API] — 16 Sep 2026
+- **Render API key:** user ne `RENDER_API_KEY` diya (`rnd_MhRE8...`, full in `.env`) — **`.env` me saved (gitignored, repo nahi gayi)**. Safety note: ye key chat me bhi share hui hai — Rotate karne ke liye dashboard → Account Settings → API Keys.
+- **`brew install render` myth:** Render ka koi CLI/brew package hota hi nahi — user ne galat tutorial dekha tha. Deploy **official Render REST API** (`api.render.com/v1`) se kiya.
+- **Service created via API** `POST /v1/services`:
+  - Name `rachit-portfolio-api`, owner `tea-dal7a1jm8hqs73f5i11g` (Rachit's workspace, from `GET /v1/owners`)
+  - Repo `digitalguru99908-dev/rachitportfolio`, branch `main`, rootDir `server`, runtime node
+  - Build `npm install`, start `node index.js`, health `/health`, plan `free`, region `oregon`, autoDeploy yes
+  - Env vars: `RESEND_API_KEY` + `CONTACT_EMAIL` (values `.env` se)
+  - **Service ID `srv-dal8cibl550s73cja300`, Deploy `dep-dal8cijl550s73cja59g`**
+  - Dashboard: `https://dashboard.render.com/web/srv-dal8cibl550s73cja300`
+  - **URL: `https://rachit-portfolio-api.onrender.com`** (may be `-xxxx` suffix issue? NO — direct URL live, no suffix)
+- **Verified (end-to-end):**
+  - `GET /health` → 200 `{"status":"ok"}`
+  - `POST /api/send-email` (bina Origin) → 200 `{"ok":true}` (real Resend mail bheja)
+  - `POST` from `Origin: https://rachitportfolio-fawn.vercel.app` → 200 (CORS OK)
+  - Preflight `OPTIONS` → 204 + `Access-Control-Allow-Origin: https://rachitportfolio-fawn.vercel.app`
+  - Ek baar 404 aaya (transient cold-start), dusri try par sab 200 — free instance spin-up timing.
+- **Vercel env:** `VITE_API_URL=https://rachitportfolio-api.onrender.com` (production) set + `vercel --prod` redeploy. Bundle me **Render URL inline verified** (`/assets/index-*.js`).
+- **Ab contact form poora kaam karta hai:** Vercel (static) → Render API → Resend email. Architecture clean: **Vercel = frontend only, Render = backend only.**
+- **AGENTS note:** `render.yaml` repo me hai (pehle ke liye) — service ab API se bani hai; agar kaheen Blueprint apply karna ho to **existing service ko update** select karein, dobara create NAHI (name conflict hoga).
 
 ### [v12 — Backend split: Render (API) + Vercel (frontend)] — 16 Sep 2026
 - **Architecture split:** user ka plan = **Render = backend (API), Vercel = frontend (static)**.
@@ -189,34 +210,22 @@
 ## 📌 Todo / Pending
 
 - [x] Vercel deploy — **LIVE: `https://rachitportfolio-fawn.vercel.app`**
-- [ ] **Render deploy (backend):** dashboard steps neeche — Render par `rachit-portfolio-api` service banake env set karna
-- [ ] **After Render URL:** Vercel me `VITE_API_URL` = `<render-url>` set + `vercel --prod` redeploy (frontend me form phir Render se mail bhejega)
+- [x] **Render deploy (backend):** service LIVE via REST API — **API: `https://rachit-portfolio-api.onrender.com`** (dashboard: `https://dashboard.render.com/web/srv-dal8cibl550s73cja300`)
+- [x] **Vercel env `VITE_API_URL`** = `https://rachitportfolio-api.onrender.com` set + `vercel --prod` redeploy (form ab Render se mail bhejta hai)
 - [ ] GitHub deploy connect karna (optional, `vercel git connect`) — abhi CLI deploy hota hai
 - [ ] LinkedIn real profile link lagana (`src/data.ts`)
 - [ ] Instagram real profile link lagana (`src/data.ts`)
 - [ ] `VIDEO_SRC` ko real video (HLS/MP4) se replace karna
 - [ ] Resend email `from` abhi `onboarding@resend.dev` hai — custom domain verify karne par apna domain use kar sakte ho (`server/index.js`)
 - [ ] "Coming soon" project cards ko real projects se replace karna
+- [ ] API keys (`RENDER_API_KEY`, `RESEND_API_KEY`) chat me share hue — **optional: rotate karna** (safe side)
 
-## 🚀 Render Deploy Steps (backend — manual, dashboard se)
+## ✅ Render Backend — DONE via REST API (no dashboard clicks)
 
-1. `render.com` kholo → "Login → Continue with Google" (`rachitsharma999088@gmail.com`)
-2. Dashboard par **"New +" → "Blueprint"** → select GitHub repo `digitalguru99908-dev/rachitportfolio`
-   - Abhi repo me `render.yaml` hai (service `rachit-portfolio-api`) → Render ye detect karega
-   - Agar install ho to: **Configure Blueprint** me service `rachit-portfolio-api` dikhegi
-3. **Recommended (manual service, zyada control):** "New +" → "Web Service" → repo select → config:
-   - **Name:** `rachit-portfolio-api`
-   - **Root Directory:** `server`
-   - **Build Command:** `npm install`
-   - **Start Command:** `node index.js`
-   - **Instance Type:** Free
-4. Deploy se pehle **Environment** tab me 2 vars add karo:
-   - `RESEND_API_KEY` = key (`re_9uv7...`) — `sync:false` means values Render dashboard se manually bharni hongi (blueprint me auto-fill nahi hota)
-   - `CONTACT_EMAIL` = `rachitsharma999088@gmail.com`
-5. **Create Web Service** → Render build + deploy karega (~1-2 min)
-6. URL milega jaise `https://rachit-portfolio-api.onrender.com` (ya `-xxxx` suffix) — **ye URL mujhe do**, main:
-   - Vercel me `VITE_API_URL` set karke `vercel --prod` frontend redeploy karunga
-   - `/health` + `/api/send-email` verify karunga
+- Service: `rachit-portfolio-api` | ID `srv-dal8cibl550s73cja300` | Deploy `dep-dal8cijl550s73cja59g`
+- URL: `https://rachit-portfolio-api.onrender.com` | Dashboard: `https://dashboard.render.com/web/srv-dal8cibl550s73cja300`
+- Env (dashboard/API set): `RESEND_API_KEY`, `CONTACT_EMAIL`. autoDeploy=yes (push par auto redeploy).
+- ⚠️ **Blueprint note:** `render.yaml` repo me hai. Service API se bani hai — **agar Blueprint apply karo to "existing service ko update" chuno**; naya create mat karo (name conflict hoga).
 
 ---
 *Generated by opencode — har agent is file ko read/update karega.*
