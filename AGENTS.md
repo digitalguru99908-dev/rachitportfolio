@@ -45,7 +45,7 @@
 - **Panel click par `ProjectDetailTransition` kholta hai** (`v5`, refactor) — tiles scatter → circle converge → dissolve → card; View Details = GitHub link (v6); coming-soon desaturated + shake.
 - **Hero black-background fix:** `BackgroundVideo` ab fallback gradient dikhata hai jab video load/play nahi hoti (VS Code embedded browser case). Video sirf tab dikhti hai jab actually play ho rahi ho.
 - **Lenis smooth scroll** App-level wired (`src/App.tsx`, autoRaf lerp 0.09).
-- **Backend LIVE on Render (`v13`):** API `https://rachitportfolio-api.onrender.com` (Express + Resend), frontend Vercel static only. `VITE_API_URL` (Vercel env + `.env` local) = Render URL. `RENDER_API_KEY` saved in `.env` (gitignored).
+- **Backend LIVE on Render (`v14`):** API **`https://rachit-api.onrender.com`** (Express + Resend), frontend Vercel static only. `VITE_API_URL` (Vercel env + `.env` local) = Render URL. `RENDER_API_KEY` saved in `.env` (gitignored). Keep-alive via **client-side `startKeepAlive()`** (pings `/health` on mount + every 8 min while site open) + **EnquiryForm 3-attempt retry** (handles free-tier cold-start). Client-side combo eliminates need for a server-side cron job (Render cron not available on free, GitHub PAT lacks `workflow` scope).
 - `data.ts` me highlight:
   - LinkedIn & Instagram links TODO hai (`src/data.ts`)
   - `VIDEO_SRC` — real HLS/video link chahiye (abhi Mux test stream hai)
@@ -68,6 +68,17 @@
 ---
 
 ## 📝 Changelog (History of Work)
+
+### [v14 — Fresh Render backend + client-side keep-alive] — 16 Sep 2026
+- **Bug fix — stale edge/routing on old service:** `rachit-portfolio-api.onrender.com` kept returning `x-render-routing: no-server` despite multiple fresh deploys + restarts. Root cause: stale DNS/edge mapping after delete + recreate of service with same name/URL. **Fix:** created fresh service `rachit-api` (`srv-dal9dd5g1s2s73em6lig`) → new URL `https://rachit-api.onrender.com` — first request returned 200 immediately.
+- **Service create (API):** `POST /v1/services` — name `rachit-api`, owner `tea-dal7a1jm8hqs73f5i11g`, repo same, rootDir `server`, plan free, region oregon. Env vars from `.env`.
+- **Vercel env updated:** `VITE_API_URL` = `https://rachit-api.onrender.com` (production), frontend redeployed (`vercel --prod`). Bundle verified inline.
+- **End-to-end verified:** POST `Origin: https://rachitportfolio-fawn.vercel.app` → `{"ok":true}` (Resend mail sent). Preflight → 204 + correct CORS header.
+- **Old service deleted:** `srv-dal8sq3m8hqs73fabth0` removed.
+- **Client-side keep-alive (`src/lib/keepalive.ts`):** pings `/health` on page load + every 8 min while open. Keeps instance warm during browsing → email form instant.
+- **EnquiryForm 3-attempt retry:** on cold-start race (instance sleeping), handleSubmit retries up to 3 times with 6s backoff before showing error. Eliminates most user-visible failures.
+- **Render free cron NOT available:** `cron_job` type requires paid plan (`invalid plan: free`). GitHub PAT lacks `workflow` scope (push rejected for `.github/workflows/`). Client-side keep-alive is the belt-and-suspenders solution.
+- `npm run lint` + `npm run build` pass (same known R3F warnings + chunk-size warning).
 
 ### [v13 — Render backend LIVE via REST API] — 16 Sep 2026
 - **Render API key:** user ne `RENDER_API_KEY` diya (`rnd_MhRE8...`, full in `.env`) — **`.env` me saved (gitignored, repo nahi gayi)**. Safety note: ye key chat me bhi share hui hai — Rotate karne ke liye dashboard → Account Settings → API Keys.
@@ -210,8 +221,8 @@
 ## 📌 Todo / Pending
 
 - [x] Vercel deploy — **LIVE: `https://rachitportfolio-fawn.vercel.app`**
-- [x] **Render deploy (backend):** service LIVE via REST API — **API: `https://rachit-portfolio-api.onrender.com`** (dashboard: `https://dashboard.render.com/web/srv-dal8cibl550s73cja300`)
-- [x] **Vercel env `VITE_API_URL`** = `https://rachitportfolio-api.onrender.com` set + `vercel --prod` redeploy (form ab Render se mail bhejta hai)
+- [x] **Render deploy (backend):** service LIVE via REST API — **API: `https://rachit-api.onrender.com`** (dashboard: `https://dashboard.render.com/web/srv-dal9dd5g1s2s73em6lig`)
+- [x] **Vercel env `VITE_API_URL`** = `https://rachit-api.onrender.com` set + `vercel --prod` redeploy (form ab Render se mail bhejta hai)
 - [ ] GitHub deploy connect karna (optional, `vercel git connect`) — abhi CLI deploy hota hai
 - [ ] LinkedIn real profile link lagana (`src/data.ts`)
 - [ ] Instagram real profile link lagana (`src/data.ts`)
@@ -222,10 +233,11 @@
 
 ## ✅ Render Backend — DONE via REST API (no dashboard clicks)
 
-- Service: `rachit-portfolio-api` | ID `srv-dal8cibl550s73cja300` | Deploy `dep-dal8cijl550s73cja59g`
-- URL: `https://rachit-portfolio-api.onrender.com` | Dashboard: `https://dashboard.render.com/web/srv-dal8cibl550s73cja300`
+- **Service (current):** `rachit-api` | ID `srv-dal9dd5g1s2s73em6lig`
+- **URL:** `https://rachit-api.onrender.com` | Dashboard: `https://dashboard.render.com/web/srv-dal9dd5g1s2s73em6lig`
 - Env (dashboard/API set): `RESEND_API_KEY`, `CONTACT_EMAIL`. autoDeploy=yes (push par auto redeploy).
-- ⚠️ **Blueprint note:** `render.yaml` repo me hai. Service API se bani hai — **agar Blueprint apply karo to "existing service ko update" chuno**; naya create mat karo (name conflict hoga).
+- ⚠️ **Rationale for name change:** Previous service `rachit-portfolio-api` had persistent `x-render-routing: no-server` after free-tier spin-down (stale edge/DNS issue after service recreation). Fresh name `rachit-api` resolves this.
+- ⚠️ **Keep-alive:** Client-side only (Render free cron unavailable; GitHub PAT lacks `workflow` scope for GHA). See `src/lib/keepalive.ts`.
 
 ---
 *Generated by opencode — har agent is file ko read/update karega.*

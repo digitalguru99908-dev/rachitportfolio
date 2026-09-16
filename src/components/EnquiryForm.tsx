@@ -57,22 +57,29 @@ export default function EnquiryForm() {
     if (Object.keys(errs).length > 0) return
 
     setSending(true)
-    try {
-      const res = await fetch(API_URL, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(form),
-      })
-      if (!res.ok) throw new Error('send failed')
-      setSent(true)
-      setTimeout(() => {
-        setSent(false)
-        setForm({ name: '', email: '', reason: 'Hire me', message: '' })
-      }, 3000)
-    } catch {
-      setFailed(true)
-    } finally {
-      setSending(false)
+    const MAX_ATTEMPTS = 3
+    for (let attempt = 0; attempt < MAX_ATTEMPTS; attempt++) {
+      try {
+        const res = await fetch(API_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(form),
+        })
+        if (!res.ok) throw new Error('send failed')
+        setSent(true)
+        setSending(false)
+        setTimeout(() => {
+          setSent(false)
+          setForm({ name: '', email: '', reason: 'Hire me', message: '' })
+        }, 3000)
+        return
+      } catch {
+        if (attempt < MAX_ATTEMPTS - 1) await new Promise((r) => setTimeout(r, 6000))
+        else {
+          setFailed(true)
+          setSending(false)
+        }
+      }
     }
   }
 

@@ -9,6 +9,7 @@ import Grain from './components/Grain'
 import CursorGlow from './components/CursorGlow'
 import Navbar from './components/Navbar'
 import { setLenis } from './lib/lenis'
+import { startKeepAlive } from './lib/keepalive'
 
 const EASE = [0.16, 1, 0.3, 1] as const
 
@@ -42,7 +43,9 @@ function AppContent() {
       lerp: 0.09,
     })
     setLenis(lenis)
+    const stopKeepAlive = startKeepAlive()
     return () => {
+      stopKeepAlive?.()
       setLenis(null)
       lenis.destroy()
     }
