@@ -3,7 +3,11 @@ import { useLocation } from 'react-router-dom'
 import Hero from '../components/Hero'
 import SelectedWork from '../components/SelectedWork'
 import Journal from '../components/Journal'
+import About from '../components/About'
+import Capabilities from '../components/Capabilities'
+import Vision from '../components/Vision'
 import Stats from '../components/Stats'
+import EnquiryForm from '../components/EnquiryForm'
 import Contact from '../components/Contact'
 import { SOCIALS } from '../data'
 
@@ -43,7 +47,11 @@ export default function Landing({ ready = true }: LandingProps) {
           </a>
         }
       />
+      <About />
+      <Capabilities />
+      <Vision />
       <Stats />
+      <EnquiryForm />
       <Contact />
     </main>
   )

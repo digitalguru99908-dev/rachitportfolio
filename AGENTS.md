@@ -35,11 +35,12 @@
 
 ## 🧱 Current State (as of last update)
 
-- Landing page complete with: LoadingScreen, Grain overlay, CursorGlow, Navbar, Hero (rotating roles), SelectedWork, Journal, Stats, Contact.
+- Landing page complete with: LoadingScreen, Grain overlay, CursorGlow, Navbar, Hero (rotating roles), SelectedWork, Journal, About, Capabilities, Vision, Stats, EnquiryForm, Contact.
 - Resume page complete (Education, Skills, Projects).
 - Framer Motion page transitions, RevealHeading, TiltCard, Magnetic, Marquee helpers bane hain.
+- **NEW (`v7`) — About/Capabilities/Vision/EnquiryForm sections** — `src/components/About.tsx`, `Capabilities.tsx`, `Vision.tsx`, `EnquiryForm.tsx` add hue. EnquiryForm me EmailJS placeholder credentials (`YOUR_SERVICE_ID` etc.) daalne baaki hain.
 - **NEW — 3D Scroll-to-Fly-Through Works:** `SelectedWork.tsx` ab React Three Fiber 3D section hai — scroll par camera panels ke beech fly karta hai (sticky `h-[400vh]` + window scroll + Lenis). Components `src/components/works/` me (WorksScene, ProjectPanel, GridFloor, WorksOverlay, projectsData). Panels par click → `ProjectDetailTransition`.
-- **NEW — Click-to-Open transition (`v5`):** `ProjectTileTransition.tsx` ko 3 files me refactor kiya — `ProjectDetailTransition.tsx` (tile scatter → circle converge → dissolve → card), `ProjectDetailCard.tsx` (card + detail panel), `useProjectTransition.ts` (open/close hook, `seq` counter). Tiles panel ke click-point se originate hoti hain, per-project accent/screenshot, coming-soon desaturated + shake. Rapid-clicks par seq-key se fresh mount.
+- **NEW — Click-to-Open transition (`v5`):** `ProjectTileTransition.tsx` ko 3 files me refactor kiya — `ProjectDetailTransition.tsx` (tile scatter → circle converge → dissolve → card), `ProjectDetailCard.tsx` (card, View Details = GitHub link), `useProjectTransition.ts` (open/close hook, `seq` counter). Tiles panel ke click-point se originate hoti hain, per-project accent/screenshot, coming-soon desaturated + shake.
 - **Hero black-background fix:** `BackgroundVideo` ab fallback gradient dikhata hai jab video load/play nahi hoti (VS Code embedded browser case). Video sirf tab dikhti hai jab actually play ho rahi ho.
 - **Lenis smooth scroll** App-level wired (`src/App.tsx`, autoRaf lerp 0.09).
 - `data.ts` me highlight:
@@ -64,6 +65,22 @@
 ---
 
 ## 📝 Changelog (History of Work)
+
+### [v7 — About / Capabilities / Vision / Enquiry Form Sections] — 16 Sep 2026
+- **4 naye sections** landing page par (order: Hero → SelectedWork → Journal → **About → Capabilities → Vision → Stats → Enquiry Form → Contact**):
+  - `src/components/About.tsx` — "Who is Rachit?" + chips (AI Tools 25+, Focus, VoiceMemories AI) + GitHub/LinkedIn pills + "My Story" bordered card + "My Journey" vertical timeline (2025–2026, dot + line style). `SOCIALS.github` / `SOCIALS.linkedin` links.
+  - `src/components/Capabilities.tsx` — icon grid (lucide-react): Row 1 tools (OpenCode, OpenAI GPT, ElevenLabs, Cartesia AI, Claude), Row 2 skills (25+ AI Tools, Digital Marketing, AI-Powered Campaigns, Real Projects, Learning Every Day). 5 cols desktop → 2 cols mobile, hover lift + accent color.
+  - `src/components/Vision.tsx` — bold stacked lines, big type alternative accent/muted, radial-glow bg in site's blue accent.
+  - `src/components/EnquiryForm.tsx` — EmailJS form (NAME/TEMPLATE/PUBLIC_KEY placeholders `src/components/EnquiryForm.tsx` me — **user ko real EmailJS credentials daalne hain**). Fields: Name, Email, Reason select (Hire me/Collaborate/Just say hi/Other), Message. Validation + "Message sent ✓" 3s state + error state + disabled while sending.
+- **Deps:** `lucide-react` + `@emailjs/browser` installed.
+- `Landing.tsx` me saare sections wired, `id="about"` / `id="capabilities"` / `id="vision"` / `id="enquiry"`.
+- `npm run lint` + `npm run build` pass (sirf same 3 R3F warnings + chunk-size warning).
+
+### [v6 — Panel Click Gating + Detail Button Fix] — 16 Sep 2026
+- **Bug fix — panels ab har scroll position par clickable:** `SelectedWork` me `focusIndex` (scroll progress se `round(p*(PANEL_COUNT-1))`) → `WorksScene` → `ProjectPanel active` prop. Non-active panels me `raycast={() => null}` → R3F unhe raycast nahi karta, focused panel ke click kabhi intercept nahi hote. `Html` me `pointerEvents="none"` prop bhi.
+- **Bug fix — detail card buttons ab clickable:** `ProjectDetailTransition` ko `createPortal(document.body)` me render kiya — framer-motion transform stacking context + drei Html ke z-index (16M) se bahar. z-[1000], bg/tiles layers `pointer-events-none`.
+- **Feature — "View Details" ab GitHub repo kholta hai:** `projectsData.ts` me `repoUrl` field (Fitness/Neon ke real GitHub URLs). Card me View Details = `<a href target=_blank>` anchor → repo naya tab me. Coming-soon → "Details coming soon" disabled. `toProject` me `repoUrl` fallback `href`. Detail panel flow `ProjectDetailCard` se hata diya (View Details ab in-card panel nahi kholta).
+- Commit `7b48f56`.
 
 ### [v5 — Click-to-Open Project Animation Refactor] — 16 Sep 2026
 - **Tile transition ko naye structure me refactor kiya** — `ProjectTileTransition.tsx` delete, ab 3 files `src/components/works/` me:
@@ -117,6 +134,7 @@
 - [ ] LinkedIn real profile link lagana (`src/data.ts`)
 - [ ] Instagram real profile link lagana (`src/data.ts`)
 - [ ] `VIDEO_SRC` ko real video (HLS/MP4) se replace karna
+- [ ] EnquiryForm me real EmailJS credentials daalna (service/template/public key → `src/components/EnquiryForm.tsx`)
 - [ ] "Coming soon" project cards ko real projects se replace karna
 - [ ] Site ke live deploy ki setup (abhi sirf local build ready hai)
 
