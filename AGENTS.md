@@ -80,6 +80,7 @@
 - **`render.yaml` (Naya):** Render Blueprint — `rachit-portfolio-api` web service, `rootDir: server`, `buildCommand: npm install`, `startCommand: node index.js`, env `RESEND_API_KEY` + `CONTACT_EMAIL` (`sync: false` → dashboard se manually set).
 - **Vercel serverless hata diya:** `api/send-email.ts` delete (backend ab sirf Render par). Vercel ab sirf static frontend.
 - **Frontend call:** `EnquiryForm.tsx` ab `import.meta.env.VITE_API_URL || '/api/send-email'` fetch karta hai. `.env` me `VITE_API_URL=http://localhost:3001` (local dev). **Production me Vercel env `VITE_API_URL` = Render URL set karna hai + redeploy** — tab tak live Vercel deploy NAHI kiya (purana bundle + purana function abhi chal raha hai).
+- **Post-recommit konverge (`10de4f3` ke baad):** user ne kaha — frontend Vercel par host karo, old backend delete karo. Done: `vercel --prod` se **naya static-only frontend live** (`https://rachitportfolio-fawn.vercel.app`, 200), old serverless API ab dead (`/api/send-email` → 405). ⚠️ **Contact form abhi TUTA hai** (koi API nahi) — Render deploy ke baad hi wapas chalega. Frontend ko wapas test karne ke liye Vercel env `VITE_API_URL` = Render URL chahiye.
 - **Secrets:** `.env`, `server/.env` dono gitignored verified. `server/.env.example` + root `.env.example` committed (no values).
 - ⚠️ **TODO awaiting user:** (1) Render par service deploy karna (dashboard steps AGENTS me below), (2) Render URL milne par Vercel env `VITE_API_URL` set + `vercel --prod`.
 
