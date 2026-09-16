@@ -1,22 +1,26 @@
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import type { Project } from '../data'
 import { PROJECTS, SOCIALS } from '../data'
 import WorksScene from './works/WorksScene'
 import WorksOverlay from './works/WorksOverlay'
 import ProjectDetailTransition from './works/ProjectDetailTransition'
 import { useProjectTransition } from './works/useProjectTransition'
+import { PANEL_COUNT } from './works/WorksScene'
 import type { PanelOpenEvent } from './works/ProjectPanel'
 import type { WorkProject } from './works/projectsData'
 import { WORK_PROJECTS } from './works/projectsData'
 
 function toProject(work: WorkProject): Project | undefined {
-  return PROJECTS.find((p) => p.title === work.title)
+  const base = PROJECTS.find((p) => p.title === work.title)
+  if (base) return base
+  return { title: work.title, tag: work.tag, href: work.repoUrl, comingSoon: true, accent: work.accentTo, tagline: '', description: '', tech: [], aspect: '', span: '' }
 }
 
 export default function SelectedWork() {
   const sectionRef = useRef<HTMLDivElement>(null)
   const blurRef = useRef<HTMLDivElement>(null)
   const progressRef = useRef(0)
+  const [focusIndex, setFocusIndex] = useState(0)
   const { request, open, close } = useProjectTransition()
 
   useEffect(() => {
@@ -30,6 +34,11 @@ export default function SelectedWork() {
         Math.min(1, -el.getBoundingClientRect().top / total),
       )
       progressRef.current = p
+      const idx = Math.min(
+        PANEL_COUNT - 1,
+        Math.round(p * (PANEL_COUNT - 1)),
+      )
+      setFocusIndex(idx)
     }
     onScroll()
     window.addEventListener('scroll', onScroll, { passive: true })
@@ -77,6 +86,7 @@ export default function SelectedWork() {
             blurEl={blurRef}
             onOpen={onOpen}
             projects={WORK_PROJECTS}
+            focusIndex={focusIndex}
           />
         </div>
 

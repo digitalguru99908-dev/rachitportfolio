@@ -50,6 +50,7 @@ interface WorksSceneProps {
   blurEl?: MutableRefObject<HTMLDivElement | null>
   onOpen?: (project: WorkProject, point: PanelOpenEvent) => void
   projects?: WorkProject[]
+  focusIndex?: number
 }
 
 export default function WorksScene({
@@ -57,6 +58,7 @@ export default function WorksScene({
   blurEl,
   onOpen,
   projects,
+  focusIndex = 0,
 }: WorksSceneProps) {
   const list = projects ?? []
   return (
@@ -79,6 +81,7 @@ export default function WorksScene({
           project={project}
           z={-i * PANEL_SPACING}
           focusRange={PANEL_SPACING * 0.75}
+          active={i === focusIndex}
           onOpen={onOpen}
         />
       ))}

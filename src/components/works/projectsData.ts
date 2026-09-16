@@ -5,6 +5,7 @@ export interface WorkProject {
   accentFrom: string
   accentTo: string
   slug: string
+  repoUrl?: string
 }
 
 export const WORK_PROJECTS: WorkProject[] = [
@@ -15,6 +16,7 @@ export const WORK_PROJECTS: WorkProject[] = [
     accentFrom: '#4E85BF',
     accentTo: '#89AACC',
     slug: 'fitness-website',
+    repoUrl: 'https://github.com/digitalguru99908-dev/Fitness-website',
   },
   {
     id: 'neon-racer',
@@ -23,6 +25,7 @@ export const WORK_PROJECTS: WorkProject[] = [
     accentFrom: '#D946EF',
     accentTo: '#8B2FC9',
     slug: 'neon-car-racing',
+    repoUrl: 'https://github.com/digitalguru99908-dev/neon-car-racing-game-',
   },
   {
     id: 'upcoming-game',

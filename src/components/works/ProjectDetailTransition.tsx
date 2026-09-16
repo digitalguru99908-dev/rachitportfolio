@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef } from 'react'
+import { createPortal } from 'react-dom'
 import gsap from 'gsap'
 import type { Project } from '../../data'
 import ProjectDetailCard from './ProjectDetailCard'
@@ -35,7 +36,6 @@ export default function ProjectDetailTransition({
 }: ProjectDetailTransitionProps) {
   const rootRef = useRef<HTMLDivElement>(null)
   const cardRef = useRef<HTMLDivElement>(null)
-  const panelRef = useRef<HTMLDivElement>(null)
   const tileRefs = useRef<(HTMLDivElement | null)[]>([])
   const closingRef = useRef(false)
 
@@ -208,17 +208,17 @@ export default function ProjectDetailTransition({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
-  return (
+  return createPortal(
     <div
       ref={rootRef}
-      className="fixed inset-0 z-[80]"
+      className="fixed inset-0 z-[1000]"
       role="dialog"
       aria-modal="true"
       aria-label={`${project.title} details`}
     >
-      <div className="absolute inset-0 bg-bg/90 backdrop-blur-sm" />
+      <div className="pointer-events-none absolute inset-0 bg-bg/90 backdrop-blur-sm" />
 
-      <div className="absolute inset-0 overflow-hidden">
+      <div className="pointer-events-none absolute inset-0 overflow-hidden">
         {tiles.map((tile, i) => (
           <div
             key={i}
@@ -260,9 +260,9 @@ export default function ProjectDetailTransition({
           accent={accent}
           onClose={close}
           cardRef={cardRef}
-          panelRef={panelRef}
         />
       )}
-    </div>
+    </div>,
+    document.body,
   )
 }

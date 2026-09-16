@@ -13,6 +13,7 @@ interface ProjectPanelProps {
   project: WorkProject
   z: number
   focusRange?: number
+  active?: boolean
   onOpen?: (project: WorkProject, point: PanelOpenEvent) => void
 }
 
@@ -43,6 +44,7 @@ export default function ProjectPanel({
   project,
   z,
   focusRange = 6,
+  active = true,
   onOpen,
 }: ProjectPanelProps) {
   const group = useRef<THREE.Group>(null)
@@ -72,7 +74,11 @@ export default function ProjectPanel({
 
   return (
     <group ref={group} position={[0, 0.15, z]}>
-      <mesh onClick={onPanelClick} position={[0, 0, 0]}>
+      <mesh
+        onClick={active ? onPanelClick : undefined}
+        raycast={active ? undefined : () => null}
+        position={[0, 0, 0]}
+      >
         <boxGeometry args={[PANEL_W, PANEL_H, PANEL_D]} />
         <meshBasicMaterial
           ref={mat}
@@ -87,6 +93,7 @@ export default function ProjectPanel({
         center
         transform
         distanceFactor={3.4}
+        pointerEvents="none"
         style={{ pointerEvents: 'none' }}
       >
         <div
