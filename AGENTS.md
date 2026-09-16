@@ -45,7 +45,11 @@
 - **Panel click par `ProjectDetailTransition` kholta hai** (`v5`, refactor) — tiles scatter → circle converge → dissolve → card; View Details = GitHub link (v6); coming-soon desaturated + shake.
 - **Hero black-background fix:** `BackgroundVideo` ab fallback gradient dikhata hai jab video load/play nahi hoti (VS Code embedded browser case). Video sirf tab dikhti hai jab actually play ho rahi ho.
 - **Lenis smooth scroll** App-level wired (`src/App.tsx`, autoRaf lerp 0.09).
-- **Backend LIVE on Render (`v14`):** API **`https://rachit-api.onrender.com`** (Express + Resend), frontend Vercel static only. `VITE_API_URL` (Vercel env + `.env` local) = Render URL. `RENDER_API_KEY` saved in `.env` (gitignored). Keep-alive via **client-side `startKeepAlive()`** (pings `/health` on mount + every 8 min while site open) + **EnquiryForm 3-attempt retry** (handles free-tier cold-start). Client-side combo eliminates need for a server-side cron job (Render cron not available on free, GitHub PAT lacks `workflow` scope).
+- **Backend LIVE on Render (`v14`):** API **`https://rachit-api.onrender.com`** (Express + Resend), frontend Vercel static only. `VITE_API_URL` (Vercel env + `.env` local) = Render URL. `RENDER_API_KEY` saved in `.env` (gitignored). Keep-alive triple-layer:
+  1. **GitHub Actions cron (`v15`, LIVE)** — `.github/workflows/keep-render-awake.yml` har 10 min Render `/health` ping (manual run verified SUCCESS — 100% free)
+  2. **Client-side `startKeepAlive()`** (`src/lib/keepalive.ts`) — pings `/health` on mount + every 8 min while site open
+  3. **EnquiryForm 3-attempt retry** — cold-start race me 6s backoff ke saath retry
+- **User rule (`v15`):** user ne clear kaha — **"sab kam bilkul free ma hona chiye"**. Koi bhi change jo paisa maange (Render cron $1/mo, Vercel Pro cron, paid plan) = pehle se NO. Free solutions hi: GitHub Actions cron, client-side keep-alive, retry.
 - `data.ts` me highlight:
   - LinkedIn & Instagram links TODO hai (`src/data.ts`)
   - `VIDEO_SRC` — real HLS/video link chahiye (abhi Mux test stream hai)
@@ -68,6 +72,15 @@
 ---
 
 ## 📝 Changelog (History of Work)
+
+### [v15 — GitHub Actions keep-alive cron LIVE (100% free)] — 16 Sep 2026
+- **User rule declared:** **"sab kam bilkul free ma hona chiye"** — koi paid option nahi (Render cron $1/mo, Vercel Pro) kabhi propose nahi karna. Ye rule AGENTS me record kiya gaya.
+- **GitHub Actions cron god — LIVE ✅:** `.github/workflows/keep-render-awake.yml` me har 10 min Render `/health` ping. Manual dispatch run verified **SUCCESS**.
+- **Why GitHub Actions, not Render/Vercel cron:** Render cron job type free plan par block (`invalid plan: free` + docs $1/cron/month minimum); Vercel cron Hobby par sirf daily (`Hobby accounts are limited to daily cron jobs`). → GitHub Actions hi ONLY free 10-min scheduler option hai.
+- **PAT `workflow` scope issue solved:** user ne naya PAT banaya (`workflow` scope included). Workflow file **git push se nahi, GitHub Contents API se** create hui — kyunki git push `.github/workflows/` ko `workflow` scope ke bina block karta hai, par Contents API chalti hai.
+- **PowerShell gotcha (important):** YAML here-string `@"..."@` me `$` variables interpolate ho jaate hain → `$i`/`$code` gayab. **Single-quoted `@'...'@` use karo.** Existing file UPDATE par `sha` field miss hota hai to 422 aata hai — pehle file ka current sha fetch karke pass karo.
+- **Token hygiene note:** user ne ab tak 3 `ghp_` PATs chat me share kiye (last wala `ghp_b9Z...` abhi active, workflow file usi se bani). Sab tokens only memory me — AGENTS me kabhi nahi likhe, repo me nahi. Safety: `ghp_b9Z...` rotate karne ke liye GitHub → Settings → Developer settings → PAT.
+- `git push` ke andar `.github/workflows/` ab repo me committed hai (file Contents API se bani thi, merge ke baad local me aa gayi).
 
 ### [v14 — Fresh Render backend + client-side keep-alive] — 16 Sep 2026
 - **Bug fix — stale edge/routing on old service:** `rachit-portfolio-api.onrender.com` kept returning `x-render-routing: no-server` despite multiple fresh deploys + restarts. Root cause: stale DNS/edge mapping after delete + recreate of service with same name/URL. **Fix:** created fresh service `rachit-api` (`srv-dal9dd5g1s2s73em6lig`) → new URL `https://rachit-api.onrender.com` — first request returned 200 immediately.
@@ -233,6 +246,7 @@
 - [ ] Resend email `from` abhi `onboarding@resend.dev` hai — custom domain verify karne par apna domain use kar sakte ho (`server/index.js`)
 - [ ] "Coming soon" project cards ko real projects se replace karna
 - [ ] API keys (`RENDER_API_KEY`, `RESEND_API_KEY`) chat me share hue — **optional: rotate karna** (safe side)
+- [ ] 3 GitHub PATs (`ghp_`) chat me share hue — active wala `ghp_b9Z...` hai (workflow file usi se bani). **Optional: abhi tokens zinda hain, koi action zaroori nahi; par agar chaho to GitHub → Settings → Tokens se rotate karo.**
 
 ## ✅ Render Backend — DONE via REST API (no dashboard clicks)
 
@@ -240,7 +254,16 @@
 - **URL:** `https://rachit-api.onrender.com` | Dashboard: `https://dashboard.render.com/web/srv-dal9dd5g1s2s73em6lig`
 - Env (dashboard/API set): `RESEND_API_KEY`, `CONTACT_EMAIL`. autoDeploy=yes (push par auto redeploy).
 - ⚠️ **Rationale for name change:** Previous service `rachit-portfolio-api` had persistent `x-render-routing: no-server` after free-tier spin-down (stale edge/DNS issue after service recreation). Fresh name `rachit-api` resolves this.
-- ⚠️ **Keep-alive:** Client-side only (Render free cron unavailable; GitHub PAT lacks `workflow` scope for GHA). See `src/lib/keepalive.ts`.
+- ✅ **Keep-alive LIVE (v15):** GitHub Actions cron (`.github/workflows/keep-render-awake.yml`, `*/10 * * * *`) + client-side keepalive + form retry — sab **100% free**.
+
+## 🖥️ GitHub Actions Cron — LIVE (keep-alive)
+
+- **File:** `.github/workflows/keep-render-awake.yml` (v15, Contents API se banayi — git push `workflow` scope block karta hai, API se hota hai)
+- **Schedule:** `*/10 * * * *` — har 10 min `https://rachit-api.onrender.com/health` ping
+- **Test:** manual dispatch run → SUCCESS (step "Ping Render health endpoint" pass).
+- **Run history:** https://github.com/digitalguru99908-dev/rachitportfolio/actions
+- 💡 **Gotcha:** YAML upload se pehle `@'...'@` single-quoted here-string use karo — `@"..."@` me `$i/$code` wale variables gayab ho jaate hain. File UPDATE karne par `sha` field required hai.
+- ⚠️ **USER RULE:** sab kam **free** — GitHub Actions free, Render free, Vercel free. Paisa maangne wale options (Render cron $1/mo, Vercel Pro) kabhi mat propose karna.
 
 ---
 *Generated by opencode — har agent is file ko read/update karega.*
