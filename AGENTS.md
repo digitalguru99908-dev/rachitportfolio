@@ -68,6 +68,18 @@
 
 ## 📝 Changelog (History of Work)
 
+### [v10 — Secure contact form (Resend API) + Secrets protection] — 16 Sep 2026
+- **Enquiry form ab Resend se mail karta hai (EmailJS hata diya):**
+  - `api/send-email.ts` — Vercel **serverless function** (Node runtime). Form POST → Resend API se mail (`from: onboarding@resend.dev`, `to: CONTACT_EMAIL`, `reply_to` sender). API key **kabhi client/browser me nahi** — sirf server-side `process.env.RESEND_API_KEY` se.
+  - `src/components/EnquiryForm.tsx` — `emailjs.send()` ki jagah plain `fetch('/api/send-email')`. Validation + sent/failed states same.
+  - `@emailjs/browser` uninstall, `resend` + `@vercel/node` (devDeps) install.
+- **Secrets protection (security):**
+  - `.env` (Naya) — `RESEND_API_KEY` + `CONTACT_EMAIL` (real values). **`.env` gitignore me hai, GitHub par kabhi nahi jayega.**
+  - `.env.example` (Naya, committed) — same keys, **no values**. Kisi bhi gobhi ko pata ho kaunse secrets chahiye.
+  - `.gitignore` update — `.env`, `.env.*`, `!.env.example`, `.vercel` added. `.vercel` (CLI project folder) bhi ignore.
+  - **Note:** `VITE_` prefix kabhi use nahi karna secrets ke liye (wo browser bundle me inline hota hai). Resend key only server-side.
+- **Email source:** Resend free tier `onboarding@resend.dev` (testing). Agar custom domain verify karoge to `from` change ho sakti hai (`api/send-email.ts`).
+
 ### [v9 — Rachit's photo + Vercel ready] — 16 Sep 2026
 - **Photo lagayi:** `D:\Pictures\rachit.jpg` → `public/rachit.jpg` (162KB) copy hui; `About.tsx` me photo slot ab initials placeholder ki jagah `/rachit.jpg` dikhata hai (240px circle, gradient ring, `object-cover`).
 - **Vercel CLI installed:** `npm i -g vercel` (pnpm global bin PATH me nahi tha) → `vercel@59.19.0`. `vercel whoami` → login required.
@@ -155,7 +167,7 @@
 - [ ] LinkedIn real profile link lagana (`src/data.ts`)
 - [ ] Instagram real profile link lagana (`src/data.ts`)
 - [ ] `VIDEO_SRC` ko real video (HLS/MP4) se replace karna
-- [ ] EnquiryForm me real EmailJS credentials daalna (service/template/public key → `src/components/EnquiryForm.tsx`)
+- [ ] EnquiryForm ab Resend wired (serverless) — deployed env me `RESEND_API_KEY` set hona chahiye
 - [ ] "Coming soon" project cards ko real projects se replace karna
 - [ ] Site ke live deploy ki setup (abhi sirf local build ready hai)
 

@@ -1,5 +1,4 @@
 import { useState } from 'react'
-import emailjs from '@emailjs/browser'
 import RevealHeading from './RevealHeading'
 
 const REASONS = ['Hire me', 'Collaborate', 'Just say hi', 'Other'] as const
@@ -17,10 +16,6 @@ interface FormErrors {
   email?: string
   message?: string
 }
-
-const EMAILJS_SERVICE_ID = 'YOUR_SERVICE_ID'
-const EMAILJS_TEMPLATE_ID = 'YOUR_TEMPLATE_ID'
-const EMAILJS_PUBLIC_KEY = 'YOUR_PUBLIC_KEY'
 
 function validate(data: FormData): FormErrors {
   const errors: FormErrors = {}
@@ -61,17 +56,12 @@ export default function EnquiryForm() {
 
     setSending(true)
     try {
-      await emailjs.send(
-        EMAILJS_SERVICE_ID,
-        EMAILJS_TEMPLATE_ID,
-        {
-          from_name: form.name,
-          from_email: form.email,
-          reason: form.reason,
-          message: form.message,
-        },
-        { publicKey: EMAILJS_PUBLIC_KEY },
-      )
+      const res = await fetch('/api/send-email', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(form),
+      })
+      if (!res.ok) throw new Error('send failed')
       setSent(true)
       setTimeout(() => {
         setSent(false)
