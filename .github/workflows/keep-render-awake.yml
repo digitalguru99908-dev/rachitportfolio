@@ -1,0 +1,23 @@
+name: Keep Render API awake
+
+on:
+  schedule:
+    - cron: "*/10 * * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  keep-awake:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping Render health endpoint
+        run: |
+          url="https://rachit-api.onrender.com/health"
+          for i in 1 2 3; do
+            code=$(curl -sS -o /tmp/hb -w "%{http_code}" --max-time 25 "$url" 2>/dev/null || echo "000")
+            echo "attempt $i -> HTTP $code : $(cat /tmp/hb 2>/dev/null)"
+            [ "$code" = "200" ] && break
+            sleep 20
+          done
