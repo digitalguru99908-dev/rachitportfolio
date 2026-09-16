@@ -60,18 +60,13 @@ export default function About() {
                   'linear-gradient(135deg, #89aacc 0%, #4e85bf 55%, #2f6fa3 100%)',
               }}
             >
-              {/* TODO: replace with Rachit's own photo */}
-              <div
-                className="flex h-full w-full items-center justify-center rounded-full bg-bg"
-                style={{
-                  background:
-                    'radial-gradient(120% 120% at 30% 25%, hsl(217 85% 22%) 0%, hsl(217 60% 12%) 55%, hsl(220 60% 5%) 100%)',
-                }}
-              >
-                <span className="font-display text-6xl italic text-muted">
-                  RS
-                </span>
-              </div>
+              <img
+                src="/rachit.jpg"
+                alt="Rachit Sharma"
+                className="h-full w-full rounded-full object-cover"
+                width={240}
+                height={240}
+              />
             </motion.div>
 
             <motion.div

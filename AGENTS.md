@@ -68,6 +68,11 @@
 
 ## 📝 Changelog (History of Work)
 
+### [v9 — Rachit's photo + Vercel ready] — 16 Sep 2026
+- **Photo lagayi:** `D:\Pictures\rachit.jpg` → `public/rachit.jpg` (162KB) copy hui; `About.tsx` me photo slot ab initials placeholder ki jagah `/rachit.jpg` dikhata hai (240px circle, gradient ring, `object-cover`).
+- **Vercel CLI installed:** `npm i -g vercel` (pnpm global bin PATH me nahi tha) → `vercel@59.19.0`. `vercel whoami` → login required.
+- **`vercel.json` banaya:** `framework: "vite"` + SPA rewrite (`assets/` kochhod kar sab `/index.html` → `/resume` refresh par kaam kare).
+
 ### [v8 — Round 2 Fixes: DOM click, Lenis nav, About redesign] — 16 Sep 2026
 - **Bug fix — project panel click ab har scroll position par reliably kholta hai:** 3D raycast hit-testing (unreliable, sirf focused panel work karta tha) hata ke **DOM click overlay** approach use kiya:
   - `src/components/works/ProjectPanel.tsx` — mesh se `onClick`/`raycast` gating hata diya; `useFrame` me har panel ka front-face **screen coords me project** hota hai (`Vector3.project(camera)`, 4 corners → viewport px rect) aur `screenRect` object me likhta hai.
@@ -146,6 +151,7 @@
 
 ## 📌 Todo / Pending
 
+- [ ] Vercel deploy: `vercel login` (browser) → `vercel --prod`
 - [ ] LinkedIn real profile link lagana (`src/data.ts`)
 - [ ] Instagram real profile link lagana (`src/data.ts`)
 - [ ] `VIDEO_SRC` ko real video (HLS/MP4) se replace karna
