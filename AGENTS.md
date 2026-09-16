@@ -77,7 +77,10 @@
 - **Old service deleted:** `srv-dal8sq3m8hqs73fabth0` removed.
 - **Client-side keep-alive (`src/lib/keepalive.ts`):** pings `/health` on page load + every 8 min while open. Keeps instance warm during browsing → email form instant.
 - **EnquiryForm 3-attempt retry:** on cold-start race (instance sleeping), handleSubmit retries up to 3 times with 6s backoff before showing error. Eliminates most user-visible failures.
-- **Render free cron NOT available:** `cron_job` type requires paid plan (`invalid plan: free`). GitHub PAT lacks `workflow` scope (push rejected for `.github/workflows/`). Client-side keep-alive is the belt-and-suspenders solution.
+- **Render free cron NOT available:** `cron_job` type requires paid plan (`invalid plan: free`). Render docs confirm minimum charge **$1/cron job/month** — free par Render-native cron exist hi nahi karta.
+- **Vercel cron bhi free par nahi:** Hobby plan daily-only cron allow karta hai; `*/10 * * * *` deploy par reject hua (`Hobby accounts are limited to daily cron jobs`). Vercel cron experiment revert (`vercel.json` wapas simple rewrite, `api/keepalive.ts` delete).
+- **GitHub Actions cron = ONLY free 10-min option**, par PAT me `workflow` scope chahiye. Naye PAT `ghp_xAq...` test hua — scopes sirf `repo`. Jadi-jaade: token edit → `workflow` checkbox tick (value wahi rehti hai, regenerate mat karna). File `.github/workflows/keep-render-awake.yml` (har 10 min health ping) ready hai.
+- **Client-side keep-alive (`src/lib/keepalive.ts`)** = tumhara active bandobast (site khula → har 8 min ping). Email form abhi kaam karta hai.
 - `npm run lint` + `npm run build` pass (same known R3F warnings + chunk-size warning).
 
 ### [v13 — Render backend LIVE via REST API] — 16 Sep 2026
