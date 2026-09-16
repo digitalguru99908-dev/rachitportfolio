@@ -1,6 +1,8 @@
 import { useState } from 'react'
 import RevealHeading from './RevealHeading'
 
+const API_URL = import.meta.env.VITE_API_URL || '/api/send-email'
+
 const REASONS = ['Hire me', 'Collaborate', 'Just say hi', 'Other'] as const
 type Reason = (typeof REASONS)[number]
 
@@ -56,7 +58,7 @@ export default function EnquiryForm() {
 
     setSending(true)
     try {
-      const res = await fetch('/api/send-email', {
+      const res = await fetch(API_URL, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(form),

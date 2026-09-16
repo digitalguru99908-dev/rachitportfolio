@@ -45,6 +45,7 @@
 - **Panel click par `ProjectDetailTransition` kholta hai** (`v5`, refactor) — tiles scatter → circle converge → dissolve → card; View Details = GitHub link (v6); coming-soon desaturated + shake.
 - **Hero black-background fix:** `BackgroundVideo` ab fallback gradient dikhata hai jab video load/play nahi hoti (VS Code embedded browser case). Video sirf tab dikhti hai jab actually play ho rahi ho.
 - **Lenis smooth scroll** App-level wired (`src/App.tsx`, autoRaf lerp 0.09).
+- **Backend split (`v12`):** API ab Render par (`server/` Express + Resend), frontend Vercel static. `VITE_API_URL` = Render URL (Vercel env).
 - `data.ts` me highlight:
   - LinkedIn & Instagram links TODO hai (`src/data.ts`)
   - `VIDEO_SRC` — real HLS/video link chahiye (abhi Mux test stream hai)
@@ -67,6 +68,20 @@
 ---
 
 ## 📝 Changelog (History of Work)
+
+### [v12 — Backend split: Render (API) + Vercel (frontend)] — 16 Sep 2026
+- **Architecture split:** user ka plan = **Render = backend (API), Vercel = frontend (static)**.
+- **`server/` (Naya, Render deploy):** Express server (plain JS, ES modules) — `server/index.js` + `server/package.json` (express, cors, dotenv, resend). Ends:
+  - POST `/api/send-email` → Resend API se mail (same logic jo pehle Vercel function me thi)
+  - GET `/health`
+  - CORS sirf allowed origins (`rachitportfolio-fawn.vercel.app`, `localhost:5173`/`4173`)
+  - `.env` se keys (dotenv/config), Render par dashboard env se. Port = `process.env.PORT || 3001`
+  - **Local test done:** `/health` 200, POST send-email `{"ok":true}` (real Resend mail bheja).
+- **`render.yaml` (Naya):** Render Blueprint — `rachit-portfolio-api` web service, `rootDir: server`, `buildCommand: npm install`, `startCommand: node index.js`, env `RESEND_API_KEY` + `CONTACT_EMAIL` (`sync: false` → dashboard se manually set).
+- **Vercel serverless hata diya:** `api/send-email.ts` delete (backend ab sirf Render par). Vercel ab sirf static frontend.
+- **Frontend call:** `EnquiryForm.tsx` ab `import.meta.env.VITE_API_URL || '/api/send-email'` fetch karta hai. `.env` me `VITE_API_URL=http://localhost:3001` (local dev). **Production me Vercel env `VITE_API_URL` = Render URL set karna hai + redeploy** — tab tak live Vercel deploy NAHI kiya (purana bundle + purana function abhi chal raha hai).
+- **Secrets:** `.env`, `server/.env` dono gitignored verified. `server/.env.example` + root `.env.example` committed (no values).
+- ⚠️ **TODO awaiting user:** (1) Render par service deploy karna (dashboard steps AGENTS me below), (2) Render URL milne par Vercel env `VITE_API_URL` set + `vercel --prod`.
 
 ### [v11 — Vercel deploy LIVE] — 16 Sep 2026
 - **Login:** `vercel login` ho gaya (`rachitsharma999088@gmail.com`, scope `rachit-09a3`). Project link: `rachitportfolio`.
@@ -173,12 +188,34 @@
 ## 📌 Todo / Pending
 
 - [x] Vercel deploy — **LIVE: `https://rachitportfolio-fawn.vercel.app`**
+- [ ] **Render deploy (backend):** dashboard steps neeche — Render par `rachit-portfolio-api` service banake env set karna
+- [ ] **After Render URL:** Vercel me `VITE_API_URL` = `<render-url>` set + `vercel --prod` redeploy (frontend me form phir Render se mail bhejega)
 - [ ] GitHub deploy connect karna (optional, `vercel git connect`) — abhi CLI deploy hota hai
 - [ ] LinkedIn real profile link lagana (`src/data.ts`)
 - [ ] Instagram real profile link lagana (`src/data.ts`)
 - [ ] `VIDEO_SRC` ko real video (HLS/MP4) se replace karna
-- [ ] Resend email `from` abhi `onboarding@resend.dev` hai — custom domain verify karne par apna domain use kar sakte ho (`api/send-email.ts`)
+- [ ] Resend email `from` abhi `onboarding@resend.dev` hai — custom domain verify karne par apna domain use kar sakte ho (`server/index.js`)
 - [ ] "Coming soon" project cards ko real projects se replace karna
+
+## 🚀 Render Deploy Steps (backend — manual, dashboard se)
+
+1. `render.com` kholo → "Login → Continue with Google" (`rachitsharma999088@gmail.com`)
+2. Dashboard par **"New +" → "Blueprint"** → select GitHub repo `digitalguru99908-dev/rachitportfolio`
+   - Abhi repo me `render.yaml` hai (service `rachit-portfolio-api`) → Render ye detect karega
+   - Agar install ho to: **Configure Blueprint** me service `rachit-portfolio-api` dikhegi
+3. **Recommended (manual service, zyada control):** "New +" → "Web Service" → repo select → config:
+   - **Name:** `rachit-portfolio-api`
+   - **Root Directory:** `server`
+   - **Build Command:** `npm install`
+   - **Start Command:** `node index.js`
+   - **Instance Type:** Free
+4. Deploy se pehle **Environment** tab me 2 vars add karo:
+   - `RESEND_API_KEY` = key (`re_9uv7...`) — `sync:false` means values Render dashboard se manually bharni hongi (blueprint me auto-fill nahi hota)
+   - `CONTACT_EMAIL` = `rachitsharma999088@gmail.com`
+5. **Create Web Service** → Render build + deploy karega (~1-2 min)
+6. URL milega jaise `https://rachit-portfolio-api.onrender.com` (ya `-xxxx` suffix) — **ye URL mujhe do**, main:
+   - Vercel me `VITE_API_URL` set karke `vercel --prod` frontend redeploy karunga
+   - `/health` + `/api/send-email` verify karunga
 
 ---
 *Generated by opencode — har agent is file ko read/update karega.*
